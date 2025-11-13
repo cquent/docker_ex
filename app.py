@@ -8,7 +8,7 @@ simple python flask application
 ##########################################################################
 
 import os
-
+from pymongo import MongoClient
 from flask import Flask
 from flask import request
 from flask import render_template
@@ -20,14 +20,23 @@ from flask.json import jsonify
 ##########################################################################
 
 app = Flask(__name__)
-
+# MongoDB connection
+mongo_host = os.getenv("MONGO_HOST")
+mongo_port = int(os.getenv("MONGO_PORT"))
+client = MongoClient(f"mongodb://{mongo_host}:{mongo_port}/")
+db = client["mydatabase"]
+collection = db["items"]
 ##########################################################################
 ## Routes
 ##########################################################################
 
+
+
+
 @app.route("/")
-def home():
-    return render_template("home.html")
+def index():
+    data = list(collection.find({}, {"_id": 0}))
+    return jsonify({"source": "mongodb", "data": data})
 
 @app.route("/api/hello")
 def hello():
@@ -70,4 +79,4 @@ def whoami_name(name):
 ##########################################################################
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="0.0.0.0", port=5000)
